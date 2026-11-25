@@ -8,10 +8,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.athalia.cineverse.ui.screens.CollectionScreen
 import com.athalia.cineverse.ui.screens.DashboardScreen
 import com.athalia.cineverse.ui.screens.DetailScreen
 import com.athalia.cineverse.ui.screens.SearchScreen
 import com.athalia.cineverse.ui.screens.SettingsScreen
+import com.athalia.cineverse.viewmodel.LibraryViewModel
 import com.athalia.cineverse.viewmodel.MovieDetailViewModel
 import com.athalia.cineverse.viewmodel.MovieViewModel
 import com.athalia.cineverse.viewmodel.SearchViewModel
@@ -39,6 +41,9 @@ fun AppNavGraph(
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
                 },
+                onOpenCollection = {
+                    navController.navigate(Screen.Collection.route)
+                },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
                 }
@@ -53,9 +58,22 @@ fun AppNavGraph(
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getInt("movieId") ?: 0
             val detailViewModel: MovieDetailViewModel = viewModel(factory = factory)
+            val libraryViewModel: LibraryViewModel = viewModel(factory = factory)
             DetailScreen(
                 movieId = movieId,
                 viewModel = detailViewModel,
+                libraryViewModel = libraryViewModel,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Collection.route) {
+            val libraryViewModel: LibraryViewModel = viewModel(factory = factory)
+            CollectionScreen(
+                libraryViewModel = libraryViewModel,
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.Detail.createRoute(movieId))
+                },
                 onBackClick = { navController.popBackStack() }
             )
         }
