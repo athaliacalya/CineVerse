@@ -26,4 +26,13 @@
     <string name="no_synopsis">No synopsis available.</string>
     <string name="release_year">Release Year</string>
     <string name="rating">Rating</string>
+    <string name="watchlist">Watchlist</string>
+    <string name="watched">Watched</string>
+    <string name="your_rating">Your rating</string>
+    <string name="your_review">Your review</string>
+    <string name="save">Save</string>
+    <string name="my_collection">My Collection</string>
+    <string name="stats">%1$d films watched · average rating %2$s</string>
+    <string name="empty_collection">Nothing here yet</string>
+    <string name="review_hint">Write your thoughts about this movie...</string>
 </resources>

@@ -26,4 +26,13 @@
     <string name="no_synopsis">Sinopsis belum tersedia.</string>
     <string name="release_year">Tahun Rilis</string>
     <string name="rating">Rating</string>
+    <string name="watchlist">Ingin Ditonton</string>
+    <string name="watched">Ditonton</string>
+    <string name="your_rating">Rating kamu</string>
+    <string name="your_review">Ulasan kamu</string>
+    <string name="save">Simpan</string>
+    <string name="my_collection">Koleksi Saya</string>
+    <string name="stats">%1$d film ditonton · rata-rata rating %2$s</string>
+    <string name="empty_collection">Belum ada film di koleksi ini</string>
+    <string name="review_hint">Tulis ulasanmu tentang film ini...</string>
 </resources>
