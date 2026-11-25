@@ -24,13 +24,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +46,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,19 +63,26 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.athalia.cineverse.R
 import com.athalia.cineverse.data.model.Genre
+import com.athalia.cineverse.data.model.Movie
 import com.athalia.cineverse.data.model.MovieDetail
+import com.athalia.cineverse.data.model.SavedMovie
+import com.athalia.cineverse.data.model.toMovie
 import com.athalia.cineverse.ui.components.ErrorState
 import com.athalia.cineverse.ui.components.GenreChip
 import com.athalia.cineverse.ui.components.LoadingState
+import com.athalia.cineverse.ui.components.RatingBar
 import com.athalia.cineverse.ui.theme.CineVerseTheme
+import com.athalia.cineverse.ui.theme.PrimaryPink
 import com.athalia.cineverse.ui.theme.PrimaryPinkDark
 import com.athalia.cineverse.ui.theme.StarPink
+import com.athalia.cineverse.viewmodel.LibraryViewModel
 import com.athalia.cineverse.viewmodel.MovieDetailViewModel
 
 @Composable
 fun DetailScreen(
     movieId: Int,
     viewModel: MovieDetailViewModel,
+    libraryViewModel: LibraryViewModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -73,6 +91,8 @@ fun DetailScreen(
     }
 
     val uiState by viewModel.uiState.collectAsState()
+    val savedItems by libraryViewModel.items.collectAsState()
+    val savedEntry = savedItems.find { it.movie.id == movieId }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -96,8 +116,16 @@ fun DetailScreen(
                 }
 
                 uiState.movieDetail != null -> {
+                    val detail = uiState.movieDetail!!
+                    val movie = detail.toMovie()
+
                     DetailContent(
-                        movie = uiState.movieDetail!!,
+                        movie = detail,
+                        savedMovie = savedEntry,
+                        onToggleWatchlist = { libraryViewModel.toggleWatchlist(movie) },
+                        onToggleWatched = { libraryViewModel.toggleWatched(movie) },
+                        onRateMovie = { libraryViewModel.setRating(movie, it) },
+                        onSaveReview = { libraryViewModel.setReview(movie, it) },
                         onBackClick = onBackClick
                     )
                 }
@@ -109,10 +137,16 @@ fun DetailScreen(
 @Composable
 fun DetailContent(
     movie: MovieDetail,
-    onBackClick: () -> Unit,
+    savedMovie: SavedMovie? = null,
+    onToggleWatchlist: () -> Unit = {},
+    onToggleWatched: () -> Unit = {},
+    onRateMovie: (Float) -> Unit = {},
+    onSaveReview: (String) -> Unit = {},
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    var reviewText by remember(savedMovie?.review) { mutableStateOf(savedMovie?.review ?: "") }
 
     Column(
         modifier = modifier
@@ -261,7 +295,8 @@ fun DetailContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .offset(y = (-30).dp)
+                .offset(y = (-30).dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Genre Chips
             if (movie.genres.isNotEmpty()) {
@@ -273,35 +308,135 @@ fun DetailContent(
                         GenreChip(name = genre.name)
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            // Letterboxd Action Buttons (Watchlist & Watched)
+            val isWatchlist = savedMovie?.watchlist == true
+            val isWatched = savedMovie?.watched == true
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                FilledTonalButton(
+                    onClick = onToggleWatchlist,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = if (isWatchlist) PrimaryPink.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (isWatchlist) PrimaryPink else MaterialTheme.colorScheme.onSurface
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = if (isWatchlist) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = null,
+                        tint = if (isWatchlist) PrimaryPink else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.watchlist),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                }
+
+                FilledTonalButton(
+                    onClick = onToggleWatched,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = if (isWatched) PrimaryPink.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = if (isWatched) PrimaryPink else MaterialTheme.colorScheme.onSurface
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    if (isWatched) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = PrimaryPink,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    Text(
+                        text = stringResource(R.string.watched),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                }
+            }
+
+            // Your Rating (RatingBar)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = stringResource(R.string.your_rating),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                RatingBar(
+                    rating = savedMovie?.rating ?: 0f,
+                    onRate = onRateMovie
+                )
             }
 
             // Sinopsis Section
-            Text(
-                text = stringResource(R.string.synopsis),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.synopsis),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = if (!movie.overview.isNullOrBlank()) {
+                        movie.overview
+                    } else {
+                        stringResource(R.string.no_synopsis)
+                    },
+                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            Text(
-                text = if (!movie.overview.isNullOrBlank()) {
-                    movie.overview
-                } else {
-                    stringResource(R.string.no_synopsis)
-                },
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 24.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Your Review Section
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.your_review),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
 
-            Spacer(modifier = Modifier.height(40.dp))
+                OutlinedTextField(
+                    value = reviewText,
+                    onValueChange = { reviewText = it },
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.review_hint),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryPink,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+
+                Button(
+                    onClick = { onSaveReview(reviewText) },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(
+                        text = stringResource(R.string.save),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }
@@ -321,6 +456,14 @@ private val sampleMovieDetail = MovieDetail(
     )
 )
 
+private val sampleSavedMovie = SavedMovie(
+    movie = sampleMovieDetail.toMovie(),
+    watchlist = true,
+    watched = true,
+    rating = 4f,
+    review = "Film superhero klasik yang mengawali MCU dengan sangat solid!"
+)
+
 @Preview(name = "Detail Film - Light", showBackground = true)
 @Composable
 fun DetailScreenLightPreview() {
@@ -328,6 +471,7 @@ fun DetailScreenLightPreview() {
         Surface {
             DetailContent(
                 movie = sampleMovieDetail,
+                savedMovie = sampleSavedMovie,
                 onBackClick = {}
             )
         }
@@ -341,6 +485,7 @@ fun DetailScreenDarkPreview() {
         Surface {
             DetailContent(
                 movie = sampleMovieDetail,
+                savedMovie = sampleSavedMovie,
                 onBackClick = {}
             )
         }

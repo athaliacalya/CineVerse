@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +47,7 @@ fun DashboardScreen(
     viewModel: MovieViewModel,
     onMovieClick: (Int) -> Unit,
     onSearchClick: () -> Unit,
+    onOpenCollection: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,6 +57,7 @@ fun DashboardScreen(
         uiState = uiState,
         onMovieClick = onMovieClick,
         onSearchClick = onSearchClick,
+        onOpenCollection = onOpenCollection,
         onSettingsClick = onSettingsClick,
         onRetry = { viewModel.retry() },
         modifier = modifier
@@ -67,6 +70,7 @@ fun DashboardContent(
     uiState: DashboardUiState,
     onMovieClick: (Int) -> Unit,
     onSearchClick: () -> Unit,
+    onOpenCollection: () -> Unit,
     onSettingsClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
@@ -89,6 +93,13 @@ fun DashboardContent(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = stringResource(R.string.search_title),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    IconButton(onClick = onOpenCollection) {
+                        Icon(
+                            imageVector = Icons.Default.Bookmarks,
+                            contentDescription = stringResource(R.string.my_collection),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -203,6 +214,7 @@ fun DashboardLightPreview() {
                 uiState = sampleDashboardState,
                 onMovieClick = {},
                 onSearchClick = {},
+                onOpenCollection = {},
                 onSettingsClick = {},
                 onRetry = {}
             )
@@ -219,6 +231,7 @@ fun DashboardDarkPreview() {
                 uiState = sampleDashboardState,
                 onMovieClick = {},
                 onSearchClick = {},
+                onOpenCollection = {},
                 onSettingsClick = {},
                 onRetry = {}
             )
