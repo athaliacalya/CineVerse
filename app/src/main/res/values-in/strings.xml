@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">CineVerse</string>
+    <string name="trending_this_week">TRENDING MINGGU INI</string>
+    <string name="popular">Populer</string>
+    <string name="now_playing">Sedang Tayang</string>
+    <string name="top_rated">Rating Tertinggi</string>
+    <string name="search_hint">Cari film...</string>
+    <string name="search_title">Pencarian</string>
+    <string name="synopsis">Sinopsis</string>
+    <string name="settings">Pengaturan</string>
+    <string name="language">Bahasa</string>
+    <string name="language_desc">Mengubah teks aplikasi dan data film</string>
+    <string name="indonesian">Indonesia</string>
+    <string name="english">English</string>
+    <string name="theme">Tema</string>
+    <string name="theme_desc">Tampilan terang atau gelap</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+    <string name="theme_system">Sistem</string>
+    <string name="about">Tentang</string>
+    <string name="about_desc">CineVerse v1.0 · Data film dari TMDB</string>
+    <string name="retry">Coba Lagi</string>
+    <string name="error_loading">Gagal memuat data. Periksa koneksi internet Anda.</string>
+    <string name="empty_movies">Tidak ada film ditemukan.</string>
+    <string name="back">Kembali</string>
+    <string name="no_synopsis">Sinopsis belum tersedia.</string>
+    <string name="release_year">Tahun Rilis</string>
+    <string name="rating">Rating</string>
+</resources>
