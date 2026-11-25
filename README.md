@@ -1,4 +1,4 @@
-# 🎬 CineVerse – Aplikasi Film Android
+# CineVerse – Aplikasi Film Android
 
 Aplikasi Android modern untuk menjelajahi katalog film populer, sedang tayang, rating tertinggi, dan trending minggu ini yang dibangun menggunakan **Jetpack Compose** dan terintegrasi dengan **The Movie Database (TMDB) API**.
 
@@ -6,7 +6,7 @@ Dibuat untuk memenuhi kriteria penilaian **Project Pemrograman Mobile Kelas XII 
 
 ---
 
-## 📱 Tampilan Layar (Screenshots)
+## Tampilan Layar (Screenshots)
 
 | Dashboard (Night Mode) | Dashboard (Not Night) | Halaman Detail Film | Halaman Pengaturan |
 |:---:|:---:|:---:|:---:|
@@ -14,7 +14,7 @@ Dibuat untuk memenuhi kriteria penilaian **Project Pemrograman Mobile Kelas XII 
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
 ### 1. Dashboard Interaktif (Bobot 30%)
 - **Trending Banner**: Menampilkan film trending minggu ini dengan gradien rose/magenta yang elegan, judul tebal, rating bintang, dan tahun rilis.
@@ -53,7 +53,7 @@ Dibuat untuk memenuhi kriteria penilaian **Project Pemrograman Mobile Kelas XII 
 
 ---
 
-## 🛠️ Tech Stack & Library
+## Tech Stack & Library
 
 - **Bahasa & UI**: Kotlin, Jetpack Compose, Material 3
 - **Arsitektur**: MVVM (Model-View-ViewModel) + StateFlow
@@ -64,7 +64,7 @@ Dibuat untuk memenuhi kriteria penilaian **Project Pemrograman Mobile Kelas XII 
 
 ---
 
-## 📂 Struktur Proyek
+## Struktur Proyek
 
 ```text
 com.athalia.cineverse/
@@ -109,20 +109,20 @@ com.athalia.cineverse/
 
 ---
 
-## 🔑 Konfigurasi TMDB API Key
+## Konfigurasi TMDB API Key
 
 API Key disimpan di dalam file `local.properties` (dan otomatis diabaikan oleh `.gitignore` sehingga aman tidak terunggah ke repositori publik):
 
 1. Buka atau buat file `local.properties` di direktori *root* proyek.
 2. Tambahkan baris berikut:
    ```properties
-   TMDB_API_KEY=8ae7fc88adb3092cc38ca4012b1afb91
+   TMDB_API_KEY=
    ```
 3. Gradle akan membaca kunci ini dan menyediakannya melalui `BuildConfig.TMDB_API_KEY`.
 
 ---
 
-## 🚀 Cara Menjalankan Aplikasi
+## Cara Menjalankan Aplikasi
 
 1. Clone repositori ini:
    ```bash
@@ -141,7 +141,7 @@ API Key disimpan di dalam file `local.properties` (dan otomatis diabaikan oleh `
 
 ---
 
-## 📊 Pemetaan Rubrik Penilaian
+## Pemetaan Rubrik Penilaian
 
 | Kriteria | Bobot | Implementasi di CineVerse |
 |:---|:---:|:---|
@@ -150,9 +150,3 @@ API Key disimpan di dalam file `local.properties` (dan otomatis diabaikan oleh `
 | **Multi Bahasa** | 15% | Tersedia Bahasa Indonesia (`values-in`) dan English (`values`), dapat diganti secara langsung dari Pengaturan, memperbarui UI dan parameter API |
 | **Presentasi & Fungsi** | 30% | Demo alur data Retrofit/TMDB, ganti tema Terang/Gelap/Sistem instan, rotasi layar portrait/landscape mulus tanpa crash |
 
----
-
-## 📋 Pengumpulan Proyek
-
-- **Batas Pengumpulan**: 26 November 2026
-- **Tautan Google Form**: [https://s.id/asesmengasalmobileXII26](https://s.id/asesmengasalmobileXII26)
