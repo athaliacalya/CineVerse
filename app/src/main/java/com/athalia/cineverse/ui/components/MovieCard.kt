@@ -1,5 +1,6 @@
 package com.athalia.cineverse.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,20 +23,22 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.athalia.cineverse.data.model.Movie
+import com.athalia.cineverse.ui.theme.CineVerseTheme
 import com.athalia.cineverse.ui.theme.PrimaryPink
 import com.athalia.cineverse.ui.theme.StarPink
 
@@ -140,6 +143,46 @@ fun MovieCard(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Preview(name = "Movie Card - Light", showBackground = true)
+@Composable
+fun MovieCardLightPreview() {
+    CineVerseTheme(darkTheme = false) {
+        Surface {
+            Box(modifier = Modifier.padding(16.dp)) {
+                MovieCard(
+                    movie = Movie(
+                        id = 1726,
+                        title = "Iron Man",
+                        voteAverage = 7.7,
+                        releaseDate = "2008-05-02"
+                    ),
+                    onMovieClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "Movie Card - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun MovieCardDarkPreview() {
+    CineVerseTheme(darkTheme = true) {
+        Surface {
+            Box(modifier = Modifier.padding(16.dp)) {
+                MovieCard(
+                    movie = Movie(
+                        id = 1726,
+                        title = "Iron Man",
+                        voteAverage = 7.7,
+                        releaseDate = "2008-05-02"
+                    ),
+                    onMovieClick = {}
+                )
             }
         }
     }

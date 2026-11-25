@@ -1,5 +1,6 @@
 package com.athalia.cineverse.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,17 +39,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.athalia.cineverse.R
 import com.athalia.cineverse.data.repository.AppLanguage
 import com.athalia.cineverse.data.repository.ThemeMode
+import com.athalia.cineverse.ui.theme.CineVerseTheme
 import com.athalia.cineverse.ui.theme.PrimaryPink
 import com.athalia.cineverse.ui.theme.ToggleBackgroundDark
 import com.athalia.cineverse.ui.theme.ToggleBackgroundLight
 import com.athalia.cineverse.viewmodel.SettingsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
@@ -56,6 +59,27 @@ fun SettingsScreen(
 ) {
     val currentTheme by viewModel.themeMode.collectAsState()
     val currentLanguage by viewModel.language.collectAsState()
+
+    SettingsContent(
+        currentTheme = currentTheme,
+        currentLanguage = currentLanguage,
+        onThemeSelect = { viewModel.setThemeMode(it) },
+        onLanguageSelect = { viewModel.setLanguage(it) },
+        onBackClick = onBackClick,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsContent(
+    currentTheme: ThemeMode,
+    currentLanguage: AppLanguage,
+    onThemeSelect: (ThemeMode) -> Unit,
+    onLanguageSelect: (AppLanguage) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val isDark = isSystemInDarkTheme()
 
     Scaffold(
@@ -120,7 +144,6 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Language Segmented Control
                     val toggleBg = if (currentTheme == ThemeMode.DARK || (currentTheme == ThemeMode.SYSTEM && isDark)) {
                         ToggleBackgroundDark
                     } else {
@@ -137,13 +160,13 @@ fun SettingsScreen(
                         SegmentedOption(
                             text = stringResource(R.string.indonesian),
                             isSelected = currentLanguage == AppLanguage.INDONESIAN,
-                            onClick = { viewModel.setLanguage(AppLanguage.INDONESIAN) },
+                            onClick = { onLanguageSelect(AppLanguage.INDONESIAN) },
                             modifier = Modifier.weight(1f)
                         )
                         SegmentedOption(
                             text = stringResource(R.string.english),
                             isSelected = currentLanguage == AppLanguage.ENGLISH,
-                            onClick = { viewModel.setLanguage(AppLanguage.ENGLISH) },
+                            onClick = { onLanguageSelect(AppLanguage.ENGLISH) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -174,7 +197,6 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Theme Segmented Control
                     val toggleBg = if (currentTheme == ThemeMode.DARK || (currentTheme == ThemeMode.SYSTEM && isDark)) {
                         ToggleBackgroundDark
                     } else {
@@ -191,19 +213,19 @@ fun SettingsScreen(
                         SegmentedOption(
                             text = stringResource(R.string.theme_light),
                             isSelected = currentTheme == ThemeMode.LIGHT,
-                            onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                            onClick = { onThemeSelect(ThemeMode.LIGHT) },
                             modifier = Modifier.weight(1f)
                         )
                         SegmentedOption(
                             text = stringResource(R.string.theme_dark),
                             isSelected = currentTheme == ThemeMode.DARK,
-                            onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+                            onClick = { onThemeSelect(ThemeMode.DARK) },
                             modifier = Modifier.weight(1f)
                         )
                         SegmentedOption(
                             text = stringResource(R.string.theme_system),
                             isSelected = currentTheme == ThemeMode.SYSTEM,
-                            onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+                            onClick = { onThemeSelect(ThemeMode.SYSTEM) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -268,5 +290,37 @@ private fun SegmentedOption(
             ),
             color = textColor
         )
+    }
+}
+
+@Preview(name = "Settings - Light", showBackground = true)
+@Composable
+fun SettingsScreenLightPreview() {
+    CineVerseTheme(darkTheme = false) {
+        Surface {
+            SettingsContent(
+                currentTheme = ThemeMode.LIGHT,
+                currentLanguage = AppLanguage.INDONESIAN,
+                onThemeSelect = {},
+                onLanguageSelect = {},
+                onBackClick = {}
+            )
+        }
+    }
+}
+
+@Preview(name = "Settings - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun SettingsScreenDarkPreview() {
+    CineVerseTheme(darkTheme = true) {
+        Surface {
+            SettingsContent(
+                currentTheme = ThemeMode.DARK,
+                currentLanguage = AppLanguage.INDONESIAN,
+                onThemeSelect = {},
+                onLanguageSelect = {},
+                onBackClick = {}
+            )
+        }
     }
 }
