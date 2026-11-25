@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.athalia.cineverse.data.repository.AppLanguage
 import com.athalia.cineverse.data.repository.ThemeMode
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 CineVerseTheme(darkTheme = isDarkTheme) {
                     Surface(modifier = Modifier.fillMaxSize()) {
-                        val navController = rememberNavController()
+                        val navController: NavHostController = rememberNavController()
                         AppNavGraph(
                             navController = navController,
                             factory = factory
