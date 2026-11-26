@@ -1,16 +1,23 @@
 package com.athalia.cineverse.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +25,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,19 +57,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.athalia.cineverse.R
 import com.athalia.cineverse.data.model.Genre
 import com.athalia.cineverse.data.model.Movie
@@ -96,12 +111,13 @@ fun DetailScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
-    ) { innerPadding ->
+    ) { _ ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .imePadding()
         ) {
             when {
                 uiState.isLoading && uiState.movieDetail == null -> {
@@ -134,6 +150,7 @@ fun DetailScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailContent(
     movie: MovieDetail,
@@ -146,11 +163,25 @@ fun DetailContent(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var reviewText by remember(savedMovie?.review) { mutableStateOf(savedMovie?.review ?: "") }
+    var isReviewFocused by remember { mutableStateOf(false) }
+    val isImeVisible = WindowInsets.isImeVisible
+
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible && isReviewFocused) {
+            delay(250)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .imeNestedScroll()
             .verticalScroll(scrollState)
     ) {
         // Backdrop Section with Gradient
@@ -378,65 +409,87 @@ fun DetailContent(
                 )
             }
 
-            // Sinopsis Section
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.synopsis),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Text(
-                    text = if (!movie.overview.isNullOrBlank()) {
-                        movie.overview
-                    } else {
-                        stringResource(R.string.no_synopsis)
-                    },
-                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Your Review Section
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.your_review),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                OutlinedTextField(
-                    value = reviewText,
-                    onValueChange = { reviewText = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.review_hint),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryPink,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
-                )
-
-                Button(
-                    onClick = { onSaveReview(reviewText) },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.align(Alignment.End)
-                ) {
+            // Sinopsis & Review Section (dibungkus agar tidak tertutup keyboard)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(bringIntoViewRequester),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Sinopsis Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = stringResource(R.string.save),
-                        style = MaterialTheme.typography.titleSmall
+                        text = stringResource(R.string.synopsis),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground
                     )
+
+                    Text(
+                        text = if (!movie.overview.isNullOrBlank()) {
+                            movie.overview
+                        } else {
+                            stringResource(R.string.no_synopsis)
+                        },
+                        style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Your Review Section
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.your_review),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    OutlinedTextField(
+                        value = reviewText,
+                        onValueChange = { reviewText = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.review_hint),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                isReviewFocused = focusState.isFocused
+                                if (focusState.isFocused) {
+                                    coroutineScope.launch {
+                                        delay(300)
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            },
+                        minLines = 3,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryPink,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+
+                    Button(
+                        onClick = {
+                            onSaveReview(reviewText)
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.save),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(30.dp).navigationBarsPadding())
         }
     }
 }
