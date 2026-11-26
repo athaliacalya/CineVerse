@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,11 +29,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,13 +59,34 @@ fun SearchScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }
+    }
 
     SearchContent(
         uiState = uiState,
         onQueryChange = { viewModel.onQueryChange(it) },
-        onClear = { viewModel.clearSearch() },
-        onMovieClick = onMovieClick,
-        onBackClick = onBackClick,
+        onClear = {
+            viewModel.clearSearch()
+            focusManager.clearFocus()
+            keyboardController?.hide()
+        },
+        onMovieClick = { movieId ->
+            keyboardController?.hide()
+            focusManager.clearFocus()
+            onMovieClick(movieId)
+        },
+        onBackClick = {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+            onBackClick()
+        },
         modifier = modifier
     )
 }
@@ -74,6 +101,9 @@ fun SearchContent(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,6 +136,13 @@ fun SearchContent(
                             }
                         },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                keyboardController?.hide()
+                                focusManager.clearFocus()
+                            }
+                        ),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryPink,
@@ -119,7 +156,11 @@ fun SearchContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                        onBackClick()
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
@@ -179,7 +220,11 @@ fun SearchContent(
                         items(uiState.results, key = { it.id }) { movie ->
                             MovieCard(
                                 movie = movie,
-                                onMovieClick = onMovieClick,
+                                onMovieClick = { id ->
+                                    keyboardController?.hide()
+                                    focusManager.clearFocus()
+                                    onMovieClick(id)
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

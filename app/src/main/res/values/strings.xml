@@ -35,4 +35,6 @@
     <string name="stats">%1$d films watched · average rating %2$s</string>
     <string name="empty_collection">Nothing here yet</string>
     <string name="review_hint">Write your thoughts about this movie...</string>
+    <string name="read_more">Read more</string>
+    <string name="read_less">Show less</string>
 </resources>
